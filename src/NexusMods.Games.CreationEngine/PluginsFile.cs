@@ -1,8 +1,6 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Mutagen.Bethesda.Plugins;
-using NexusMods.Games.CreationEngine.Abstractions;
-
 using NexusMods.Abstractions.Loadouts;
 using NexusMods.Abstractions.Loadouts.Sorting;
 using NexusMods.Abstractions.Loadouts.Synchronizers;
@@ -47,7 +45,8 @@ public class PluginsFile : IIntrinsicFile
         if (plugins.Count == 0)
             return;
         
-        var sorted = _sorter.Sort(plugins.Values.ToList(), IdSelector, plugin => RuleCreator(plugin, plugins))
+        var supportsEsl = _game.SupportsEsl;
+        var sorted = _sorter.Sort(plugins.Values.ToList(), IdSelector, plugin => RuleCreator(plugin, plugins, supportsEsl))
             .ToList();
         _logger.LogDebug("Sorted {Count} plugin files", sorted.Count);
         
@@ -62,7 +61,7 @@ public class PluginsFile : IIntrinsicFile
         await sw.FlushAsync();
     }
 
-    private static IReadOnlyList<ISortRule<Metadata, ModKey>> RuleCreator(Metadata metadata, Dictionary<ModKey, Metadata> allPlugins)
+    private static IReadOnlyList<ISortRule<Metadata, ModKey>> RuleCreator(Metadata metadata, Dictionary<ModKey, Metadata> allPlugins, bool supportsEsl)
     {
         var resultList = new List<ISortRule<Metadata, ModKey>>();
         foreach (var master in metadata.Plugin.Masters)
@@ -77,8 +76,8 @@ public class PluginsFile : IIntrinsicFile
             });
         }
 
-        // ESLs should come after ESMs
-        if (metadata.FileName.Extension == KnownCEExtensions.ESL)
+        // ESLs should come after ESMs (only for games that support ESL)
+        if (supportsEsl && metadata.FileName.Extension == KnownCEExtensions.ESL)
         {
             foreach (var other in allPlugins.Values)
             {
@@ -89,20 +88,21 @@ public class PluginsFile : IIntrinsicFile
                     });
             }
         }
-        
-        // ESPs should come after ESMs and ESLs
+
+        // ESPs should come after ESMs (and ESLs if the game supports them)
         if (metadata.FileName.Extension == KnownCEExtensions.ESP)
         {
             foreach (var other in allPlugins.Values)
             {
-                if (other.FileName.Extension == KnownCEExtensions.ESM || other.FileName.Extension == KnownCEExtensions.ESL)
+                if (other.FileName.Extension == KnownCEExtensions.ESM ||
+                    (supportsEsl && other.FileName.Extension == KnownCEExtensions.ESL))
                     resultList.Add(new After<Metadata, ModKey>()
                     {
                         Other = other.ModKey,
                     });
             }
         }
-        
+
         return resultList;
     }
 
