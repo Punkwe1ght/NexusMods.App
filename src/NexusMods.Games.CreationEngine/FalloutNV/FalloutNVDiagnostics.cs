@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 using NexusMods.Abstractions.Diagnostics;
+using NexusMods.Abstractions.Diagnostics.References;
 using NexusMods.Generators.Diagnostics;
 
 namespace NexusMods.Games.CreationEngine.FalloutNV;
@@ -8,42 +9,39 @@ internal static partial class FalloutNVDiagnostics
 {
     private const string Source = "NexusMods.Games.CreationEngine.FalloutNV";
 
-    [DiagnosticTemplate]
-    [UsedImplicitly]
-    internal static IDiagnosticTemplate ArchiveInvalidationDisabled = DiagnosticTemplateBuilder
-        .Start()
-        .WithId(new DiagnosticId(Source, number: 1))
-        .WithTitle("Archive Invalidation Disabled")
-        .WithSeverity(DiagnosticSeverity.Warning)
-        .WithSummary("Archive invalidation is not enabled — asset mods (textures, meshes) will not load")
-        .WithDetails("""
+    // Manual factory methods for parameterless diagnostics (source generator requires at least one AddValue)
+    internal static Diagnostic CreateArchiveInvalidationDisabled() => new()
+    {
+        Id = new DiagnosticId(source: Source, number: 1),
+        Title = "Archive Invalidation Disabled",
+        Severity = DiagnosticSeverity.Warning,
+        Summary = DiagnosticMessage.From("Archive invalidation is not enabled — asset mods (textures, meshes) will not load"),
+        Details = DiagnosticMessage.From("""
 Archive invalidation allows loose mod files to override assets packed in the game's BSA archives.
 Without it, texture replacers, mesh replacements, and other asset mods will not work.
 
 Set `bInvalidateOlderFiles=1` in the `[Archive]` section of `FalloutCustom.ini`
 (located in `Documents/My Games/FalloutNV/`).
-""")
-        .WithMessageData(messageBuilder => { })
-        .Finish();
+"""),
+        DataReferences = new Dictionary<DataReferenceDescription, IDataReference>(),
+    };
 
-    [DiagnosticTemplate]
-    [UsedImplicitly]
-    internal static IDiagnosticTemplate FourGbPatcherNotDetected = DiagnosticTemplateBuilder
-        .Start()
-        .WithId(new DiagnosticId(Source, number: 2))
-        .WithTitle("4GB Patcher Not Detected")
-        .WithSeverity(DiagnosticSeverity.Warning)
-        .WithSummary("The 4GB patcher has not been applied — the game may crash with heavy mod loads")
-        .WithDetails("""
+    internal static Diagnostic CreateFourGbPatcherNotDetected() => new()
+    {
+        Id = new DiagnosticId(source: Source, number: 2),
+        Title = "4GB Patcher Not Detected",
+        Severity = DiagnosticSeverity.Warning,
+        Summary = DiagnosticMessage.From("The 4GB patcher has not been applied — the game may crash with heavy mod loads"),
+        Details = DiagnosticMessage.From("""
 Fallout: New Vegas is a 32-bit application limited to 2GB of RAM by default. The 4GB patcher
 enables Large Address Aware mode, allowing the game to use up to 4GB. This dramatically
 improves stability with mods.
 
 Download and run the FNV 4GB Patcher from Nexus Mods. After patching, `FalloutNV_backup.exe`
 will appear in the game folder.
-""")
-        .WithMessageData(messageBuilder => { })
-        .Finish();
+"""),
+        DataReferences = new Dictionary<DataReferenceDescription, IDataReference>(),
+    };
 
     [DiagnosticTemplate]
     [UsedImplicitly]

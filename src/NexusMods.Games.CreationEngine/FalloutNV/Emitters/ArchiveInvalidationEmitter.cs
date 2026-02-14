@@ -15,7 +15,7 @@ public class ArchiveInvalidationEmitter : ILoadoutDiagnosticEmitter
     {
         await Task.Yield();
 
-        var prefsPath = loadout.InstallationInstance.Locations[LocationId.Preferences];
+        var prefsPath = loadout.InstallationInstance.Locations[LocationId.Preferences].Path;
 
         // Check FalloutCustom.ini first (preferred), then Fallout.ini
         var customIni = prefsPath / "FalloutCustom.ini";

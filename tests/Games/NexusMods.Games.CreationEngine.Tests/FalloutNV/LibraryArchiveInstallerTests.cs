@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
+using NexusMods.Abstractions.Loadouts;
 using NexusMods.Games.TestFramework;
+using NexusMods.HyperDuck;
 using NexusMods.Sdk.Games;
 using NexusMods.Sdk.NexusModsApi;
 using NexusMods.StandardGameLocators.TestHelpers;

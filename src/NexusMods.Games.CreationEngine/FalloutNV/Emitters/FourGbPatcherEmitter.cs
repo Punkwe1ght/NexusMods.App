@@ -15,7 +15,7 @@ public class FourGbPatcherEmitter : ILoadoutDiagnosticEmitter
     {
         await Task.Yield();
 
-        var gamePath = loadout.InstallationInstance.Locations[LocationId.Game];
+        var gamePath = loadout.InstallationInstance.Locations[LocationId.Game].Path;
         var backupExe = gamePath / "FalloutNV_backup.exe";
 
         if (backupExe.FileExists)
