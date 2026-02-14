@@ -14,6 +14,7 @@ using NexusMods.Abstractions.Loadouts.Synchronizers;
 using NexusMods.Games.CreationEngine.Abstractions;
 using NexusMods.Games.CreationEngine.Emitters;
 using NexusMods.Games.CreationEngine.Installers;
+using NexusMods.Games.CreationEngine.Parsers;
 using NexusMods.Games.FOMOD;
 using NexusMods.Hashing.xxHash3;
 using NexusMods.Paths;
@@ -96,7 +97,7 @@ public class SkyrimSE : ICreationEngineGame, IGameData<SkyrimSE>
     public GamePath GetPrimaryFile(GameInstallation installation) => new(LocationId.Game, "SkyrimSE.exe");
 
     private static readonly GroupMask EmptyGroupMask = new(false);
-    public async ValueTask<IMod?> ParsePlugin(Hash hash, RelativePath? name = null)
+    public async ValueTask<IPluginInfo?> ParsePlugin(Hash hash, RelativePath? name = null)
     {
         var fileName = name?.FileName.ToString() ?? "unknown.esm";
         var key = ModKey.FromFileName(fileName);
@@ -104,7 +105,8 @@ public class SkyrimSE : ICreationEngineGame, IGameData<SkyrimSE>
         var meta = ParsingMeta.Factory(BinaryReadParameters.Default, GameRelease.SkyrimSE, key, stream!);
         await using var mutagenStream = new MutagenBinaryReadStream(stream!, meta);
         using var frame = new MutagenFrame(mutagenStream);
-        return SkyrimMod.CreateFromBinary(frame, SkyrimRelease.SkyrimSE, EmptyGroupMask);
+        var mod = SkyrimMod.CreateFromBinary(frame, SkyrimRelease.SkyrimSE, EmptyGroupMask);
+        return mod is null ? null : new MutagenPluginInfoAdapter(mod);
     }
 
     public GamePath PluginsFile => new(LocationId.AppData, "Plugins.txt");

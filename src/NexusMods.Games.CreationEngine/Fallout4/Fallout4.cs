@@ -14,6 +14,7 @@ using NexusMods.Abstractions.Loadouts.Synchronizers;
 using NexusMods.Games.CreationEngine.Abstractions;
 using NexusMods.Games.CreationEngine.Emitters;
 using NexusMods.Games.CreationEngine.Installers;
+using NexusMods.Games.CreationEngine.Parsers;
 using NexusMods.Games.FOMOD;
 using NexusMods.Hashing.xxHash3;
 using NexusMods.Paths;
@@ -100,7 +101,7 @@ public class Fallout4 : ICreationEngineGame, IGameData<Fallout4>
     public GamePath GetPrimaryFile(GameInstallation installation) => new(LocationId.Game, "Fallout4.exe");
 
     private static readonly GroupMask EmptyGroupMask = new(false);
-    public async ValueTask<IMod?> ParsePlugin(Hash hash, RelativePath? name = null)
+    public async ValueTask<IPluginInfo?> ParsePlugin(Hash hash, RelativePath? name = null)
     {
         var fileName = name?.FileName.ToString() ?? "unknown.esm";
         var key = ModKey.FromFileName(fileName);
@@ -108,7 +109,8 @@ public class Fallout4 : ICreationEngineGame, IGameData<Fallout4>
         var meta = ParsingMeta.Factory(BinaryReadParameters.Default, GameRelease.Fallout4, key, stream!);
         await using var mutagenStream = new MutagenBinaryReadStream(stream!, meta);
         using var frame = new MutagenFrame(mutagenStream);
-        return Fallout4Mod.CreateFromBinary(frame, Fallout4Release.Fallout4, EmptyGroupMask);
+        var mod = Fallout4Mod.CreateFromBinary(frame, Fallout4Release.Fallout4, EmptyGroupMask);
+        return mod is null ? null : new MutagenPluginInfoAdapter(mod);
     }
 
     public GamePath PluginsFile => Fallout4KnownPaths.PluginsFile;

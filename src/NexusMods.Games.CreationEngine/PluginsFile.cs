@@ -1,7 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Plugins.Records;
+using NexusMods.Games.CreationEngine.Abstractions;
 
 using NexusMods.Abstractions.Loadouts;
 using NexusMods.Abstractions.Loadouts.Sorting;
@@ -23,7 +23,7 @@ public class PluginsFile : IIntrinsicFile
     private readonly ISorter _sorter;
     private readonly ILogger<PluginsFile> _logger;
 
-    private record struct Metadata(RelativePath FileName, ModKey ModKey, Hash Hash, IMod Mod);
+    private record struct Metadata(RelativePath FileName, ModKey ModKey, Hash Hash, IPluginInfo Plugin);
 
     public PluginsFile(ILogger<PluginsFile> logger, ICreationEngineGame game, ISorter sorter)
     {
@@ -65,15 +65,15 @@ public class PluginsFile : IIntrinsicFile
     private static IReadOnlyList<ISortRule<Metadata, ModKey>> RuleCreator(Metadata metadata, Dictionary<ModKey, Metadata> allPlugins)
     {
         var resultList = new List<ISortRule<Metadata, ModKey>>();
-        foreach (var master in metadata.Mod.MasterReferences)
+        foreach (var master in metadata.Plugin.Masters)
         {
             // Skip missing masters here, we'll catch that in diagnostics
-            if (!allPlugins.ContainsKey(master.Master))
+            if (!allPlugins.ContainsKey(master))
                 continue;
-            
+
             resultList.Add(new After<Metadata, ModKey>()
             {
-                Other = master.Master,
+                Other = master,
             });
         }
 
@@ -123,8 +123,8 @@ public class PluginsFile : IIntrinsicFile
         else
             hash = syncNode.Disk.Hash;
         
-        var modHeader = await _game.ParsePlugin(hash, relPath);
-        return new Metadata(relPath, modHeader!.ModKey, hash, modHeader);
+        var pluginInfo = await _game.ParsePlugin(hash, relPath);
+        return new Metadata(relPath, pluginInfo!.ModKey, hash, pluginInfo);
     }
     
 
