@@ -19,6 +19,7 @@ public class Startup
             .AddSingleton<IGuidedInstaller, NullGuidedInstaller>()
             .AddDefaultServicesForTesting()
             .AddUniversalGameLocator<CreationEngine.SkyrimSE.SkyrimSE>(new Version("1.6.1170"))
+            .AddUniversalGameLocator<CreationEngine.FalloutNV.FalloutNV>(new Version("1.4.0.525"))
             .AddFomod()
             .AddCreationEngine()
             .AddLogging(builder => builder.AddXUnit())
