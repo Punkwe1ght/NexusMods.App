@@ -34,6 +34,10 @@ public static class Services
         services.AddSingleton<IniConflictEmitter>();
         services.AddSingleton<BsaLoadOrderEmitter>();
         services.AddSingleton<NvseVersionMismatchEmitter>();
+        services.AddSingleton<PluginLimitEmitter>();
+        services.AddSingleton<FourGbPatcherEmitter>();
+        services.AddSingleton<XnvseDetectionEmitter>();
+        services.AddSingleton<ModLimitFixEmitter>();
 
         // FNV settings
         services.AddSettings<FalloutNVSettings>();

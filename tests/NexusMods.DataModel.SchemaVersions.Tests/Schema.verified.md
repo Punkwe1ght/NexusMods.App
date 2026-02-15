@@ -3,9 +3,9 @@ This schema is written to a markdown file for both documentation and validation 
 models in the app, then validate the tests to update this file. 
 
 ## Statistics
-   - Fingerprint: 0x03E30ECD79A64605
-   - Total attributes: 232
-   - Total namespaces: 75
+   - Fingerprint: 0xBD3C8439AA21DFE3
+   - Total attributes: 236
+   - Total namespaces: 77
    
 ## Attributes
 | AttributeId                                                                        | Type                    | Indexed | Many  | NoHistory | 
@@ -59,6 +59,10 @@ models in the app, then validate the tests to update this file.
 | NexusMods.Collections.NexusCollectionLoadoutGroup/LibraryFile                      | Reference               | False   | False | False     | 
 | NexusMods.Collections.NexusCollectionLoadoutGroup/Revision                         | Reference               | True    | False | False     | 
 | NexusMods.Collections.NexusCollectionReplicatedLoadoutGroup/Replicated             | Null                    | True    | False | False     | 
+| NexusMods.CreationEngine.FalloutNV.IniTweakLoadoutFile/IniTweakFile                | Null                    | True    | False | False     | 
+| NexusMods.CreationEngine.FalloutNV.IniTweakLoadoutFile/TargetIniFile               | Utf8                    | False   | False | False     | 
+| NexusMods.CreationEngine.FalloutNV.NvsePluginLoadoutItem/NvsePlugin                | Null                    | True    | False | False     | 
+| NexusMods.CreationEngine.FalloutNV.NvsePluginLoadoutItem/PluginVersion             | Utf8                    | False   | False | False     | 
 | NexusMods.DataModel.SchemaVersioning.SchemaVersionModel/CurrentVersion             | UInt16                  | False   | False | False     | 
 | NexusMods.DataModel.SchemaVersions.MigrationLogItem/MigrationId                    | UInt16                  | False   | False | False     | 
 | NexusMods.DataModel.SchemaVersions.MigrationLogItem/RunAt                          | Int64                   | False   | False | False     | 
