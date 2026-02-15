@@ -175,4 +175,42 @@ installed. Update xNVSE to the latest version from the xNVSE GitHub releases pag
             .AddValue<string>("PluginName")
         )
         .Finish();
+
+    [DiagnosticTemplate]
+    [UsedImplicitly]
+    internal static IDiagnosticTemplate XnvseRequiresProtontricks = DiagnosticTemplateBuilder
+        .Start()
+        .WithId(new DiagnosticId(Source, number: 10))
+        .WithTitle("Protontricks Required for xNVSE")
+        .WithSeverity(DiagnosticSeverity.Warning)
+        .WithSummary("{NvseModCount} mods require xNVSE but protontricks is not installed")
+        .WithDetails("""
+This game runs under Proton on Linux. xNVSE (New Vegas Script Extender) requires protontricks
+to launch correctly under Proton. Install protontricks via your package manager or Flatpak:
+
+  flatpak install com.github.Matoking.protontricks
+
+Then launch the game through the app to use xNVSE with Proton.
+""")
+        .WithMessageData(messageBuilder => messageBuilder
+            .AddValue<int>("NvseModCount")
+        )
+        .Finish();
+
+    internal static Diagnostic CreateFourGbPatcherProtonWarning() => new()
+    {
+        Id = new DiagnosticId(source: Source, number: 11),
+        Title = "4GB Patcher Under Proton",
+        Severity = DiagnosticSeverity.Suggestion,
+        Summary = DiagnosticMessage.From("The 4GB patcher may not work correctly under Proton"),
+        Details = DiagnosticMessage.From("""
+The 4GB patcher modifies the game executable to enable Large Address Aware mode. Under Proton,
+this patched executable may not launch correctly because Proton wraps the original executable.
+
+If the game fails to start after patching, restore FalloutNV_backup.exe to FalloutNV.exe and
+use Proton's built-in large address aware support instead (set PROTON_USE_WINED3D=1 or use
+a Proton version that enables LAA by default).
+"""),
+        DataReferences = new Dictionary<DataReferenceDescription, IDataReference>(),
+    };
 }

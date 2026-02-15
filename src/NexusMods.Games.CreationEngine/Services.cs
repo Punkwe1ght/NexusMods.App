@@ -38,6 +38,7 @@ public static class Services
         services.AddSingleton<FourGbPatcherEmitter>();
         services.AddSingleton<XnvseDetectionEmitter>();
         services.AddSingleton<ModLimitFixEmitter>();
+        services.AddSingleton<ProtonRequirementsEmitter>();
 
         // FNV settings
         services.AddSettings<FalloutNVSettings>();

@@ -11,7 +11,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\src\NexusMods.Games.CreationEngine\NexusMods.Games.CreationEngine.csproj" />
+      <ProjectReference Include="..\..\..\src\NexusMods.Abstractions.Collections\NexusMods.Abstractions.Collections.csproj" />
       <ProjectReference Include="..\NexusMods.Games.TestFramework\NexusMods.Games.TestFramework.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="FalloutNV/Collections/Fixtures/*.json" />
     </ItemGroup>
 
 </Project>

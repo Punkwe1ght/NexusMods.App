@@ -174,6 +174,30 @@ public class FomodXmlInstaller : ALibraryArchiveInstaller
         }
     }
 
+    /// <summary>
+    /// Strips a redundant leading directory from FOMOD destinations when the game's base
+    /// install path already includes that directory. For example, if gamePath is "Data/" and
+    /// dest is "Data/menus/foo.xml", returns "menus/foo.xml" to avoid "Data/Data/menus/foo.xml".
+    /// </summary>
+    internal static RelativePath NormalizeFomodDestination(RelativePath dest, GamePath gamePath)
+    {
+        if (dest == default) return dest;
+
+        var destStr = dest.ToString();
+        var gamePathName = gamePath.Path.Name;
+
+        // Check if dest starts with the same directory as the game path's last segment
+        // e.g. gamePath="Data/" and dest="Data/menus/foo.xml" → strip "Data/"
+        if (gamePathName.Length > 0)
+        {
+            var prefix = gamePathName + "/";
+            if (destStr.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return RelativePath.FromUnsanitizedInput(destStr[prefix.Length..]);
+        }
+
+        return dest;
+    }
+
     private static readonly char[] TrimChars = ['\\', '/'];
     internal static ReadOnlySpan<char> RemoveRoot(string? input)
     {
@@ -234,6 +258,11 @@ public class FomodXmlInstaller : ALibraryArchiveInstaller
     {
         var src = RelativePath.FromUnsanitizedInput(instruction.source);
         var dest = RelativePath.FromUnsanitizedInput(instruction.destination);
+
+        // Normalize FOMOD destinations that redundantly include the game's base path.
+        // Some FOMODs (e.g. DarNified UI) specify "Data/menus/..." when the game's
+        // fomodInstallationPath is already "Data/", which would produce "Data/Data/...".
+        dest = NormalizeFomodDestination(dest, gamePath);
 
         if (!fomodArchiveFiles.TryGetValue(src, out var libraryArchiveFile))
         {

@@ -1,0 +1,116 @@
+{
+  "info": {
+    "author": "Gopher",
+    "authorUrl": "https://www.nexusmods.com/users/1234567",
+    "name": "Gopher's DarNified UI",
+    "description": "DarNified UI with proper configuration for New Vegas",
+    "domainName": "newvegas"
+  },
+  "mods": [
+    {
+      "name": "DarNified UI",
+      "version": "2.0",
+      "optional": false,
+      "domainName": "newvegas",
+      "source": {
+        "type": "nexus",
+        "modId": 34790,
+        "fileId": 2000001,
+        "md5": "10a1b2c3d4e5f6a1b2c3d4e5f6a1b201",
+        "fileSize": 5120000,
+        "updatePolicy": "exact"
+      },
+      "choices": {
+        "type": "fomod",
+        "options": [
+          {
+            "name": "Font Options",
+            "groups": [
+              {
+                "name": "Font Size",
+                "choices": [
+                  { "name": "Small", "idx": 0, "type": 4 }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "HUD Layout",
+            "groups": [
+              {
+                "name": "HUD Style",
+                "choices": [
+                  { "name": "Default HUD", "idx": 0, "type": 4 }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Dialog Style",
+            "groups": [
+              {
+                "name": "Dialog Interface",
+                "choices": [
+                  { "name": "Classic Style", "idx": 0, "type": 4 }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "hashes": [
+        { "path": "Data/menus/prefabs/loot_menu/container_menu.xml", "md5": "10a1b2c3d4e5f6a1b2c3d4e5f6a1b201" },
+        { "path": "Data/menus/main/hud_main_menu.xml", "md5": "11a1b2c3d4e5f6a1b2c3d4e5f6a1b201" },
+        { "path": "Data/Textures/Interface/DarN/fonts_en.fnt", "md5": "12a1b2c3d4e5f6a1b2c3d4e5f6a1b201" }
+      ]
+    },
+    {
+      "name": "UIO - User Interface Organizer",
+      "version": "2.25",
+      "optional": false,
+      "domainName": "newvegas",
+      "source": {
+        "type": "nexus",
+        "modId": 57174,
+        "fileId": 2000002,
+        "md5": "13a1b2c3d4e5f6a1b2c3d4e5f6a1b201",
+        "fileSize": 307200,
+        "updatePolicy": "prefer"
+      },
+      "hashes": [
+        { "path": "Data/NVSE/Plugins/UIO.dll", "md5": "13a1b2c3d4e5f6a1b2c3d4e5f6a1b201" },
+        { "path": "Data/menus/prefabs/UIO/UIO.xml", "md5": "14a1b2c3d4e5f6a1b2c3d4e5f6a1b201" }
+      ]
+    },
+    {
+      "name": "The Mod Configuration Menu",
+      "version": "1.5",
+      "optional": false,
+      "domainName": "newvegas",
+      "source": {
+        "type": "nexus",
+        "modId": 42507,
+        "fileId": 2000003,
+        "md5": "15a1b2c3d4e5f6a1b2c3d4e5f6a1b201",
+        "fileSize": 614400,
+        "updatePolicy": "prefer"
+      },
+      "hashes": [
+        { "path": "Data/NVSE/Plugins/MCM.dll", "md5": "15a1b2c3d4e5f6a1b2c3d4e5f6a1b201" },
+        { "path": "Data/MCM.esp", "md5": "16a1b2c3d4e5f6a1b2c3d4e5f6a1b201" }
+      ]
+    }
+  ],
+  "modRules": [
+    {
+      "type": "before",
+      "source": { "logicalFileName": "UIO - User Interface Organizer" },
+      "reference": { "logicalFileName": "DarNified UI" }
+    },
+    {
+      "type": "after",
+      "source": { "logicalFileName": "DarNified UI" },
+      "reference": { "logicalFileName": "The Mod Configuration Menu" }
+    }
+  ]
+}

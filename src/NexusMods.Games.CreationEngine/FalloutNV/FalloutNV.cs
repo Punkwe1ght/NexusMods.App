@@ -76,6 +76,7 @@ public class FalloutNV : ICreationEngineGame, IGameData<FalloutNV>
             provider.GetRequiredService<IniConflictEmitter>(),
             provider.GetRequiredService<BsaLoadOrderEmitter>(),
             provider.GetRequiredService<NvseVersionMismatchEmitter>(),
+            provider.GetRequiredService<ProtonRequirementsEmitter>(),
         ];
 
         LibraryItemInstallers =

@@ -1,0 +1,89 @@
+{
+  "info": {
+    "author": "Gopher",
+    "authorUrl": "https://www.nexusmods.com/users/1234567",
+    "name": "Gopher's Gameplay and QoL Tweaks",
+    "description": "Quality-of-life improvements and gameplay tweaks for New Vegas",
+    "domainName": "newvegas"
+  },
+  "mods": [
+    {
+      "name": "lStewieAl's Tweaks and Engine Fixes",
+      "version": "9.90",
+      "optional": false,
+      "domainName": "newvegas",
+      "source": {
+        "type": "nexus",
+        "modId": 66347,
+        "fileId": 4000001,
+        "md5": "40a1b2c3d4e5f6a1b2c3d4e5f6a1b201",
+        "fileSize": 614400,
+        "updatePolicy": "prefer"
+      },
+      "hashes": [
+        { "path": "Data/NVSE/Plugins/StewiesTweaks.dll", "md5": "40a1b2c3d4e5f6a1b2c3d4e5f6a1b201" },
+        { "path": "Data/NVSE/Plugins/StewiesTweaks.ini", "md5": "41a1b2c3d4e5f6a1b2c3d4e5f6a1b201" }
+      ]
+    },
+    {
+      "name": "Faster Pip-Boy Animation",
+      "version": "2.0",
+      "optional": true,
+      "domainName": "newvegas",
+      "source": {
+        "type": "nexus",
+        "modId": 67439,
+        "fileId": 4000002,
+        "md5": "42a1b2c3d4e5f6a1b2c3d4e5f6a1b201",
+        "fileSize": 20480,
+        "updatePolicy": "prefer"
+      },
+      "hashes": [
+        { "path": "Data/NVSE/Plugins/FasterPipBoy.dll", "md5": "42a1b2c3d4e5f6a1b2c3d4e5f6a1b201" }
+      ]
+    },
+    {
+      "name": "Simple DLC Delay",
+      "version": "1.5",
+      "optional": false,
+      "domainName": "newvegas",
+      "source": {
+        "type": "nexus",
+        "modId": 62779,
+        "fileId": 4000003,
+        "md5": "43a1b2c3d4e5f6a1b2c3d4e5f6a1b201",
+        "fileSize": 10240,
+        "updatePolicy": "prefer"
+      },
+      "hashes": [
+        { "path": "Data/Simple DLC Delay.esp", "md5": "43a1b2c3d4e5f6a1b2c3d4e5f6a1b201" }
+      ]
+    },
+    {
+      "name": "INI Tweaks",
+      "version": "1.0",
+      "optional": false,
+      "domainName": "newvegas",
+      "source": {
+        "type": "bundle",
+        "fileExpression": "ini_tweaks"
+      },
+      "hashes": [
+        { "path": "Fallout.ini", "md5": "44a1b2c3d4e5f6a1b2c3d4e5f6a1b201" },
+        { "path": "FalloutPrefs.ini", "md5": "45a1b2c3d4e5f6a1b2c3d4e5f6a1b201" }
+      ]
+    }
+  ],
+  "modRules": [
+    {
+      "type": "before",
+      "source": { "logicalFileName": "lStewieAl's Tweaks and Engine Fixes" },
+      "reference": { "logicalFileName": "Simple DLC Delay" }
+    },
+    {
+      "type": "before",
+      "source": { "logicalFileName": "Faster Pip-Boy Animation" },
+      "reference": { "logicalFileName": "Simple DLC Delay" }
+    }
+  ]
+}
