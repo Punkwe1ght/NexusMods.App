@@ -24,6 +24,9 @@ public record ExperimentalSettings : ISettings
     [
         GameId.From("StardewValley"),
         GameId.From("RedEngine.Cyberpunk2077"),
+        GameId.From("CreationEngine.FalloutNV"),
+        GameId.From("CreationEngine.SkyrimSE"),
+        GameId.From("CreationEngine.Fallout4"),
     ];
 
     public static ISettingsBuilder Configure(ISettingsBuilder settingsBuilder)
