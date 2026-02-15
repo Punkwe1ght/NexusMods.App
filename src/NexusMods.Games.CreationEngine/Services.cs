@@ -5,6 +5,7 @@ using NexusMods.Games.CreationEngine.FalloutNV;
 using NexusMods.Games.CreationEngine.FalloutNV.Emitters;
 using NexusMods.Games.CreationEngine.FalloutNV.Installers;
 using NexusMods.Games.CreationEngine.FalloutNV.Models;
+using NexusMods.Games.CreationEngine.FalloutNV.SortOrder;
 using NexusMods.Sdk.Settings;
 
 namespace NexusMods.Games.CreationEngine;
@@ -25,6 +26,12 @@ public static class Services
         // FNV models
         services.AddNvsePluginLoadoutItemModel();
         services.AddIniTweakLoadoutFileModel();
+
+        // FNV sort order
+        services.AddFnvPluginSortOrderModel();
+        services.AddFnvPluginSortOrderItemModel();
+        services.AddFnvPluginQueriesSql();
+        services.AddSingleton<FnvPluginSortOrderVariety>();
 
         // FNV installer
         services.AddSingleton<FnvModInstaller>();

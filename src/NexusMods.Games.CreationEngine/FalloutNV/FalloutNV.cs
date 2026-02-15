@@ -9,6 +9,7 @@ using NexusMods.Games.CreationEngine.Abstractions;
 using NexusMods.Games.CreationEngine.Emitters;
 using NexusMods.Games.CreationEngine.FalloutNV.Emitters;
 using NexusMods.Games.CreationEngine.FalloutNV.Installers;
+using NexusMods.Games.CreationEngine.FalloutNV.SortOrder;
 using NexusMods.Games.CreationEngine.Installers;
 using NexusMods.Games.CreationEngine.Parsers;
 using NexusMods.Games.FOMOD;
@@ -61,7 +62,8 @@ public class FalloutNV : ICreationEngineGame, IGameData<FalloutNV>
         _sortOrderManager = new Lazy<ISortOrderManager>(() =>
         {
             var sortOrderManager = provider.GetRequiredService<SortOrderManager>();
-            sortOrderManager.RegisterSortOrderVarieties([], this);
+            sortOrderManager.RegisterSortOrderVarieties(
+                [provider.GetRequiredService<FnvPluginSortOrderVariety>()], this);
             return sortOrderManager;
         });
 
