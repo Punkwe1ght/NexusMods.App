@@ -23,10 +23,18 @@ public class ProtonRequirementsEmitter : ILoadoutDiagnosticEmitter
         new(LocationId.Game, "FalloutNV_backup.exe");
 
     private readonly AggregateProtontricksDependency? _protontricks;
+    private readonly bool _isLinux;
 
     public ProtonRequirementsEmitter(IServiceProvider serviceProvider)
+        : this(serviceProvider, FileSystem.Shared.OS.IsLinux) { }
+
+    /// <summary>
+    /// Constructor for testing — allows overriding the Linux detection.
+    /// </summary>
+    internal ProtonRequirementsEmitter(IServiceProvider serviceProvider, bool isLinux)
     {
         _protontricks = serviceProvider.GetService<AggregateProtontricksDependency>();
+        _isLinux = isLinux;
     }
 
     public IAsyncEnumerable<Diagnostic> Diagnose(
@@ -40,7 +48,7 @@ public class ProtonRequirementsEmitter : ILoadoutDiagnosticEmitter
         FrozenDictionary<GamePath, SyncNode> syncTree,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        if (!FileSystem.Shared.OS.IsLinux)
+        if (!_isLinux)
             yield break;
 
         // Check for xNVSE plugins in loadout

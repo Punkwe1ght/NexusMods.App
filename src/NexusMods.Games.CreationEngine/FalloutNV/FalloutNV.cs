@@ -83,7 +83,7 @@ public class FalloutNV : ICreationEngineGame, IGameData<FalloutNV>
 
         LibraryItemInstallers =
         [
-            FomodXmlInstaller.Create(provider, new GamePath(LocationId.Game, "Data")),
+            FomodXmlInstaller.Create(provider, new GamePath(LocationId.Game, "Data"), knownRootLevelDirs: ["nvse"]),
             provider.GetRequiredService<FnvModInstaller>(),
             new StopPatternInstaller(provider)
             {

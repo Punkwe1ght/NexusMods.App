@@ -31,25 +31,30 @@ public class FomodXmlInstaller : ALibraryArchiveInstaller
     private readonly IFileSystem _fileSystem;
     private readonly TemporaryFileManager _temporaryFileManager;
     private readonly IFileStore _fileStore;
+    private readonly string[]? _knownRootLevelDirs;
 
     /// <summary>
     /// Creates a new instance of <see cref="FomodXmlInstaller"/> given the provided <paramref name="provider"/> and <paramref name="fomodInstallationPath"/>.
     /// </summary>
     /// <param name="provider"></param>
     /// <param name="fomodInstallationPath"></param>
+    /// <param name="knownRootLevelDirs">Directory names (e.g. "nvse") that indicate the file should
+    /// be placed at game root rather than under <paramref name="fomodInstallationPath"/>.</param>
     /// <returns></returns>
-    public static FomodXmlInstaller Create(IServiceProvider provider, GamePath fomodInstallationPath)
+    public static FomodXmlInstaller Create(IServiceProvider provider, GamePath fomodInstallationPath, string[]? knownRootLevelDirs = null)
     {
-        return new FomodXmlInstaller(provider, provider.GetRequiredService<ILogger<FomodXmlInstaller>>(), fomodInstallationPath);
+        return new FomodXmlInstaller(provider, provider.GetRequiredService<ILogger<FomodXmlInstaller>>(), fomodInstallationPath, knownRootLevelDirs);
     }
 
     private FomodXmlInstaller(
         IServiceProvider serviceProvider,
         ILogger<FomodXmlInstaller> logger,
-        GamePath fomodInstallationPath) : base(serviceProvider, logger)
+        GamePath fomodInstallationPath,
+        string[]? knownRootLevelDirs = null) : base(serviceProvider, logger)
     {
         _logger = logger;
         _fomodInstallationPath = fomodInstallationPath;
+        _knownRootLevelDirs = knownRootLevelDirs;
 
         _delegates = serviceProvider.GetRequiredService<ICoreDelegates>();
         _temporaryFileManager = serviceProvider.GetRequiredService<TemporaryFileManager>();
@@ -264,6 +269,23 @@ public class FomodXmlInstaller : ALibraryArchiveInstaller
         // fomodInstallationPath is already "Data/", which would produce "Data/Data/...".
         dest = NormalizeFomodDestination(dest, gamePath);
 
+        // Detect files targeting known root-level directories (e.g. "NVSE/Plugins/foo.dll").
+        // These should go to game root, not under the FOMOD installation path (e.g. "Data/").
+        var effectiveGamePath = gamePath;
+        if (_knownRootLevelDirs is not null)
+        {
+            var destStr = dest.ToString();
+            foreach (var rootDir in _knownRootLevelDirs)
+            {
+                if (destStr.StartsWith(rootDir + "/", StringComparison.OrdinalIgnoreCase) ||
+                    destStr.Equals(rootDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    effectiveGamePath = new GamePath(gamePath.LocationId, "");
+                    break;
+                }
+            }
+        }
+
         if (!fomodArchiveFiles.TryGetValue(src, out var libraryArchiveFile))
         {
             _logger.LogError("Didn't find source file `{Path}` in FOMOD archive", src);
@@ -280,7 +302,7 @@ public class FomodXmlInstaller : ALibraryArchiveInstaller
                     Name = libraryArchiveFile.Path.FileName,
                     ParentId = loadoutGroup,
                 },
-                TargetPath = new GamePath(gamePath.LocationId, gamePath.Path.Join(dest)).ToGamePathParentTuple(loadoutId),
+                TargetPath = new GamePath(effectiveGamePath.LocationId, effectiveGamePath.Path.Join(dest)).ToGamePathParentTuple(loadoutId),
             },
             Hash = libraryArchiveFile.AsLibraryFile().Hash,
             Size = libraryArchiveFile.AsLibraryFile().Size,

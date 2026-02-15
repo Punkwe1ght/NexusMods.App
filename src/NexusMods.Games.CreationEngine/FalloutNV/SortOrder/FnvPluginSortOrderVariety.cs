@@ -3,6 +3,7 @@ using DynamicData;
 using DynamicData.Kernel;
 using NexusMods.Abstractions.Games;
 using NexusMods.Abstractions.Loadouts;
+using NexusMods.Abstractions.Loadouts.Synchronizers.Conflicts;
 using NexusMods.MnemonicDB.Abstractions;
 using NexusMods.MnemonicDB.Abstractions.TxFunctions;
 using NexusMods.Sdk.Loadouts;
@@ -121,7 +122,8 @@ public class FnvPluginSortOrderVariety : ASortOrderVariety<
         var sortingData = RetrieveSortOrder(sortOrderId, dbToUse);
         var loadoutData = RetrieveLoadoutData(sortOrder.LoadoutId, optionalCollection, dbToUse);
 
-        var reconciled = Reconcile(sortingData, loadoutData);
+        var groupPriorities = BuildGroupPriorityMap(sortOrder.LoadoutId, dbToUse);
+        var reconciled = ReconcileWithPriorities(sortingData, loadoutData, groupPriorities);
 
         return reconciled.Select(tuple =>
             {
@@ -157,9 +159,11 @@ public class FnvPluginSortOrderVariety : ASortOrderVariety<
                 .ToList();
         }
 
-        var loadoutData = RetrieveLoadoutData(loadoutId, collectionGroupId, db);
+        var dbToUse = db ?? Connection.Db;
+        var loadoutData = RetrieveLoadoutData(loadoutId, collectionGroupId, dbToUse);
 
-        var reconciled = Reconcile([], loadoutData);
+        var groupPriorities = BuildGroupPriorityMap(loadoutId, dbToUse);
+        var reconciled = ReconcileWithPriorities([], loadoutData, groupPriorities);
 
         var result = reconciled.Select(tuple =>
             {
@@ -180,6 +184,21 @@ public class FnvPluginSortOrderVariety : ASortOrderVariety<
             .Where(item => item.LoadoutData?.IsEnabled == true)
             .Select(item => item.Key.Key)
             .ToList();
+    }
+
+    protected override IReadOnlyList<(SortItemData<SortItemKey<string>> SortedEntry, SortItemLoadoutData<SortItemKey<string>> ItemLoadoutData)> ReconcileSortOrderCore(SortOrderId sortOrderId, IDb loadoutRevisionDb)
+    {
+        var sortOrder = LoadoutSortOrder.Load(loadoutRevisionDb.Connection.Db, sortOrderId);
+
+        var collectionGroupId = sortOrder.ParentEntity.IsT1 ?
+            sortOrder.ParentEntity.AsT1 :
+            Optional<CollectionGroupId>.None;
+
+        var loadoutData = RetrieveLoadoutData(sortOrder.LoadoutId, collectionGroupId, loadoutRevisionDb);
+        var currentSortOrder = RetrieveSortOrder(sortOrderId, loadoutRevisionDb.Connection.Db);
+
+        var groupPriorities = BuildGroupPriorityMap(sortOrder.LoadoutId, loadoutRevisionDb);
+        return ReconcileWithPriorities(currentSortOrder, loadoutData, groupPriorities);
     }
 
     protected override void PersistSortOrderCore(
@@ -261,10 +280,30 @@ public class FnvPluginSortOrderVariety : ASortOrderVariety<
         return result;
     }
 
-    /// <inheritdoc />
-    protected override IReadOnlyList<(SortItemData<SortItemKey<string>> SortedEntry, SortItemLoadoutData<SortItemKey<string>> ItemLoadoutData)> Reconcile(
+    /// <summary>
+    /// Builds a mapping from LoadoutItemGroupId to its conflict priority value.
+    /// Groups with higher priority should load later (higher sort index) in FNV.
+    /// </summary>
+    private static Dictionary<LoadoutItemGroupId, ulong> BuildGroupPriorityMap(LoadoutId loadoutId, IDb db)
+    {
+        var priorities = LoadoutItemGroupPriority.FindByLoadout(db, loadoutId);
+        var map = new Dictionary<LoadoutItemGroupId, ulong>();
+        foreach (var priority in priorities)
+        {
+            map[LoadoutItemGroupId.From(priority.TargetId.Value)] = priority.Priority.Value;
+        }
+        return map;
+    }
+
+    /// <summary>
+    /// Reconciles sort order with loadout data. When group priorities are available (e.g. from
+    /// collection modRules), new items are sorted by their group's conflict priority rather
+    /// than the default ESM-before-ESP heuristic.
+    /// </summary>
+    private IReadOnlyList<(SortItemData<SortItemKey<string>> SortedEntry, SortItemLoadoutData<SortItemKey<string>> ItemLoadoutData)> ReconcileWithPriorities(
         IReadOnlyList<SortItemData<SortItemKey<string>>> sourceSortedEntries,
-        IReadOnlyList<SortItemLoadoutData<SortItemKey<string>>> loadoutDataItems)
+        IReadOnlyList<SortItemLoadoutData<SortItemKey<string>>> loadoutDataItems,
+        Dictionary<LoadoutItemGroupId, ulong> groupPriorities)
     {
         var loadoutItemsDict = loadoutDataItems.ToDictionary(item => item.Key);
 
@@ -281,11 +320,25 @@ public class FnvPluginSortOrderVariety : ASortOrderVariety<
         }
 
         // Add any remaining loadout items that were not in the source sorted entries
-        // For FNV: append at end (greater index wins = last loaded wins), ESMs before ESPs within new items
-        var itemsToAdd = loadoutItemsDict.Values
-            .Where(item => !processedKeys.Contains(item.Key))
+        var newItems = loadoutItemsDict.Values
+            .Where(item => !processedKeys.Contains(item.Key));
+
+        // If group priorities are available for any new items, use priority-based ordering.
+        // This respects collection modRules (before/after) as encoded by ApplyCollectionDownloadRules.
+        // Otherwise, fall back to ESM-before-ESP heuristic.
+        var hasAnyPriority = groupPriorities.Count > 0;
+        var itemsToAdd = newItems
             .Order(Comparer<SortItemLoadoutData<SortItemKey<string>>>.Create((a, b) =>
             {
+                if (hasAnyPriority)
+                {
+                    var aPriority = a.ModGroupId.HasValue && groupPriorities.TryGetValue(a.ModGroupId.Value, out var ap) ? ap : ulong.MaxValue;
+                    var bPriority = b.ModGroupId.HasValue && groupPriorities.TryGetValue(b.ModGroupId.Value, out var bp) ? bp : ulong.MaxValue;
+
+                    if (aPriority != bPriority)
+                        return aPriority.CompareTo(bPriority);
+                }
+
                 // ESM files sort before ESP files (ESMs should load first)
                 var aIsEsm = a.Key.Key.EndsWith(".esm", StringComparison.OrdinalIgnoreCase);
                 var bIsEsm = b.Key.Key.EndsWith(".esm", StringComparison.OrdinalIgnoreCase);
@@ -293,7 +346,7 @@ public class FnvPluginSortOrderVariety : ASortOrderVariety<
                 if (aIsEsm != bIsEsm)
                     return aIsEsm ? -1 : 1;
 
-                // Within same type, sort by ModGroupId ascending (older items first), then by Key ascending
+                // Within same type/priority, sort by ModGroupId ascending (older items first), then by Key ascending
                 return (a, b) switch
                 {
                     ({ ModGroupId.HasValue: true }, { ModGroupId.HasValue: true }) =>
@@ -320,5 +373,14 @@ public class FnvPluginSortOrderVariety : ASortOrderVariety<
         }
 
         return results;
+    }
+
+    /// <inheritdoc />
+    protected override IReadOnlyList<(SortItemData<SortItemKey<string>> SortedEntry, SortItemLoadoutData<SortItemKey<string>> ItemLoadoutData)> Reconcile(
+        IReadOnlyList<SortItemData<SortItemKey<string>>> sourceSortedEntries,
+        IReadOnlyList<SortItemLoadoutData<SortItemKey<string>>> loadoutDataItems)
+    {
+        // Delegate to priority-aware reconcile with empty priorities (fallback to ESM-before-ESP)
+        return ReconcileWithPriorities(sourceSortedEntries, loadoutDataItems, new Dictionary<LoadoutItemGroupId, ulong>());
     }
 }
