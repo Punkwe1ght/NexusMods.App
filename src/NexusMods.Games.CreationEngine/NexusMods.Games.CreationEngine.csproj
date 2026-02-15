@@ -23,6 +23,7 @@
     <ItemGroup>
       <PackageReference Include="Mutagen.Bethesda.Fallout4" />
       <PackageReference Include="Mutagen.Bethesda.Skyrim" />
+      <PackageReference Include="NexusMods.MnemonicDB.SourceGenerator" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>

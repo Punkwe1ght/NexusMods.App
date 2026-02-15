@@ -121,4 +121,58 @@ Download xNVSE from the xNVSE GitHub releases page and extract it to the game fo
             .AddValue<int>("NvseModCount")
         )
         .Finish();
+
+    [DiagnosticTemplate]
+    [UsedImplicitly]
+    internal static IDiagnosticTemplate IniConflict = DiagnosticTemplateBuilder
+        .Start()
+        .WithId(new DiagnosticId(Source, number: 7))
+        .WithTitle("INI Setting Conflict")
+        .WithSeverity(DiagnosticSeverity.Warning)
+        .WithSummary("{ConflictCount} INI settings have conflicting values across mods in {TargetIniFile}")
+        .WithDetails("""
+Multiple mods set the same INI keys to different values. The last mod in load order wins,
+which may produce unintended behavior. Review conflicting mods and resolve duplicates.
+""")
+        .WithMessageData(messageBuilder => messageBuilder
+            .AddValue<int>("ConflictCount")
+            .AddValue<string>("TargetIniFile")
+        )
+        .Finish();
+
+    [DiagnosticTemplate]
+    [UsedImplicitly]
+    internal static IDiagnosticTemplate OrphanedBsa = DiagnosticTemplateBuilder
+        .Start()
+        .WithId(new DiagnosticId(Source, number: 8))
+        .WithTitle("Orphaned BSA Archive")
+        .WithSeverity(DiagnosticSeverity.Warning)
+        .WithSummary("{BsaName} has no matching plugin — the game will not load it")
+        .WithDetails("""
+Fallout: New Vegas only loads BSA archives whose filename matches a loaded plugin (.esp or .esm).
+This BSA has no corresponding plugin and its assets will not appear in-game.
+
+Either install the matching plugin or rename the BSA to match an existing plugin.
+""")
+        .WithMessageData(messageBuilder => messageBuilder
+            .AddValue<string>("BsaName")
+        )
+        .Finish();
+
+    [DiagnosticTemplate]
+    [UsedImplicitly]
+    internal static IDiagnosticTemplate NvseVersionMismatch = DiagnosticTemplateBuilder
+        .Start()
+        .WithId(new DiagnosticId(Source, number: 9))
+        .WithTitle("xNVSE Version Too Old")
+        .WithSeverity(DiagnosticSeverity.Warning)
+        .WithSummary("Installed xNVSE may be too old for {PluginName}")
+        .WithDetails("""
+The xNVSE plugin "{PluginName}" may require a newer version of xNVSE than what is currently
+installed. Update xNVSE to the latest version from the xNVSE GitHub releases page.
+""")
+        .WithMessageData(messageBuilder => messageBuilder
+            .AddValue<string>("PluginName")
+        )
+        .Finish();
 }

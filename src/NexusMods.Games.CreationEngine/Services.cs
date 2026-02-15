@@ -1,6 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using NexusMods.Abstractions.Games;
 using NexusMods.Abstractions.Loadouts;
+using NexusMods.Games.CreationEngine.FalloutNV;
+using NexusMods.Games.CreationEngine.FalloutNV.Emitters;
+using NexusMods.Games.CreationEngine.FalloutNV.Installers;
+using NexusMods.Games.CreationEngine.FalloutNV.Models;
+using NexusMods.Sdk.Settings;
 
 namespace NexusMods.Games.CreationEngine;
 
@@ -16,6 +21,22 @@ public static class Services
 
         services.AddGame<FalloutNV.FalloutNV>();
         services.AddSingleton<ITool>(s => RunGameViaScriptExtenderTool<FalloutNV.FalloutNV>.Create(s, KnownPaths.NVSELoader));
+
+        // FNV models
+        services.AddNvsePluginLoadoutItemModel();
+        services.AddIniTweakLoadoutFileModel();
+
+        // FNV installer
+        services.AddSingleton<FnvModInstaller>();
+
+        // FNV diagnostics
+        services.AddSingleton<ArchiveInvalidationEmitter>();
+        services.AddSingleton<IniConflictEmitter>();
+        services.AddSingleton<BsaLoadOrderEmitter>();
+        services.AddSingleton<NvseVersionMismatchEmitter>();
+
+        // FNV settings
+        services.AddSettings<FalloutNVSettings>();
 
         return services;
     }

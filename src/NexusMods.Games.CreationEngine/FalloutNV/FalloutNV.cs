@@ -8,6 +8,7 @@ using NexusMods.Abstractions.Loadouts.Synchronizers;
 using NexusMods.Games.CreationEngine.Abstractions;
 using NexusMods.Games.CreationEngine.Emitters;
 using NexusMods.Games.CreationEngine.FalloutNV.Emitters;
+using NexusMods.Games.CreationEngine.FalloutNV.Installers;
 using NexusMods.Games.CreationEngine.Installers;
 using NexusMods.Games.CreationEngine.Parsers;
 using NexusMods.Games.FOMOD;
@@ -67,16 +68,20 @@ public class FalloutNV : ICreationEngineGame, IGameData<FalloutNV>
         DiagnosticEmitters =
         [
             new MissingMasterEmitter(this),
-            new ArchiveInvalidationEmitter(),
+            provider.GetRequiredService<ArchiveInvalidationEmitter>(),
             new FourGbPatcherEmitter(),
             new PluginLimitEmitter(),
             new ModLimitFixEmitter(),
             new XnvseDetectionEmitter(),
+            provider.GetRequiredService<IniConflictEmitter>(),
+            provider.GetRequiredService<BsaLoadOrderEmitter>(),
+            provider.GetRequiredService<NvseVersionMismatchEmitter>(),
         ];
 
         LibraryItemInstallers =
         [
             FomodXmlInstaller.Create(provider, new GamePath(LocationId.Game, "Data")),
+            provider.GetRequiredService<FnvModInstaller>(),
             new StopPatternInstaller(provider)
             {
                 GameId = GameId,
@@ -129,6 +134,11 @@ public class FalloutNV : ICreationEngineGame, IGameData<FalloutNV>
 
         var fileName = name?.FileName.ToString() ?? "unknown.esm";
         return new Tes4PluginInfoAdapter(fileName, header);
+    }
+
+    public Optional<GamePath> GetFallbackCollectionInstallDirectory(GameInstallation installation)
+    {
+        return Optional<GamePath>.Create(new GamePath(LocationId.Game, "Data"));
     }
 
     public GamePath PluginsFile => FalloutNVKnownPaths.PluginsFile;

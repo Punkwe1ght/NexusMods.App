@@ -4,16 +4,28 @@ using NexusMods.Abstractions.Diagnostics.Emitters;
 using NexusMods.Paths;
 using NexusMods.Sdk.Games;
 using NexusMods.Sdk.Loadouts;
+using NexusMods.Sdk.Settings;
 
 namespace NexusMods.Games.CreationEngine.FalloutNV.Emitters;
 
 public class ArchiveInvalidationEmitter : ILoadoutDiagnosticEmitter
 {
+    private readonly ISettingsManager _settingsManager;
+
+    public ArchiveInvalidationEmitter(ISettingsManager settingsManager)
+    {
+        _settingsManager = settingsManager;
+    }
+
     public async IAsyncEnumerable<Diagnostic> Diagnose(
         Loadout.ReadOnly loadout,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         await Task.Yield();
+
+        var settings = _settingsManager.Get<FalloutNVSettings>();
+        if (!settings.CheckArchiveInvalidation)
+            yield break;
 
         var prefsPath = loadout.InstallationInstance.Locations[LocationId.Preferences].Path;
 
