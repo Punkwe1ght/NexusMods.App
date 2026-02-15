@@ -12,15 +12,22 @@ namespace NexusMods.App.UI.Settings;
 public record ExperimentalSettings : ISettings
 {
     /// <summary>
-    /// Enables games that are not enabled by default.
+    /// Shows all registered games, including those not yet fully supported.
     /// </summary>
     public bool EnableAllGames { get; [UsedImplicitly] set; } = ApplicationConstants.IsDebug;
 
+    /// <summary>
+    /// Enables uploading collections to Nexus Mods. Removed at general availability.
+    /// </summary>
     // TODO: remove for GA
     public bool EnableCollectionSharing { get; [UsedImplicitly] set; }
 
+    /// <summary>
+    /// Games shown by default without enabling experimental mode.
+    /// Not serialized; this is a compile-time constant.
+    /// </summary>
     [JsonIgnore]
-    public readonly GameId[] SupportedGames =
+    public static IReadOnlyList<GameId> SupportedGames { get; } =
     [
         GameId.From("StardewValley"),
         GameId.From("RedEngine.Cyberpunk2077"),
@@ -39,7 +46,7 @@ public record ExperimentalSettings : ISettings
                 {
                     Section = Sections.Experimental,
                     DisplayName = "Enable unsupported games",
-                    DescriptionFactory = _ => "Allows you to manage unsupported games.",
+                    DescriptionFactory = _ => "Manage games not yet fully supported.",
                     RequiresRestart = true,
                 },
                 new BooleanContainerOptions()
@@ -50,7 +57,7 @@ public record ExperimentalSettings : ISettings
                 {
                     Section = Sections.Experimental,
                     DisplayName = "Enable sharing collections",
-                    DescriptionFactory = _ => "Allows uploading of collections",
+                    DescriptionFactory = _ => "Upload collections to Nexus Mods.",
                 },
                 new BooleanContainerOptions()
             );

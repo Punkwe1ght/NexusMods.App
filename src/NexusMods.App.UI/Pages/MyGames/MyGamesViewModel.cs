@@ -115,7 +115,7 @@ public class MyGamesViewModel : APageViewModel<IMyGamesViewModel>, IMyGamesViewM
                     .Where(game =>
                     {
                         if (experimentalSettings.EnableAllGames) return true;
-                        return experimentalSettings.SupportedGames.Contains(game.Game.GameId);
+                        return ExperimentalSettings.SupportedGames.Contains(game.Game.GameId);
                     })
                     .ToReadOnlyObservableCollection()
                     .ToObservableChangeSet()
@@ -187,7 +187,7 @@ public class MyGamesViewModel : APageViewModel<IMyGamesViewModel>, IMyGamesViewM
                     .Where(game =>
                     {
                         if (experimentalSettings.EnableAllGames) return true;
-                        return experimentalSettings.SupportedGames.Contains(game.GameId);
+                        return ExperimentalSettings.SupportedGames.Contains(game.GameId);
                     })
                     .Cast<IGame>()
                     .Where(game => _installedGames.All(install => install.Installation?.GetGame().GameId != game.GameId)); // Exclude found games
