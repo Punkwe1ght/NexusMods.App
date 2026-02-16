@@ -48,7 +48,7 @@ FROM
   synchronizer.LeafLoadoutItems (db) loadout_item
   LEFT JOIN MDB_LOADOUTITEMGROUPPRIORITY(DB => db) group_priority ON loadout_item.Parent = group_priority.Target
 WHERE loadout_item.IsEnabled
-GROUP BY loadout_item.Loadout, loadout_item.TargetPath.Item2, loadout_item.TargetPath.Item3;
+GROUP BY loadout_item.Loadout, loadout_item.TargetPath.Item2, lower(loadout_item.TargetPath.Item3);
 
 -- All the files in the overrides group
 CREATE OR REPLACE MACRO synchronizer.OverrideFiles (db) AS TABLE
@@ -68,7 +68,7 @@ WITH all_files AS
   SELECT
     Loadout,
     NULL Id,
-    {Location: nma_fnv1a_hash_short('Game'), Path: Path} Path,
+    {Location: nma_fnv1a_hash_short('Game'), Path: lower(Path)} Path,
     Hash,
     Size,
     'Game'::synchronizer.ItemType ItemType,
@@ -79,7 +79,7 @@ WITH all_files AS
   SELECT
     loadout_item.Loadout,
     loadout_item.Id,
-    {Location: loadout_item.TargetPath.Item2, Path: loadout_item.TargetPath.Item3} Path,
+    {Location: loadout_item.TargetPath.Item2, Path: lower(loadout_item.TargetPath.Item3)} Path,
     loadout_item.Hash,
     loadout_item.Size,
     (CASE WHEN loadout_item.IsDeleted THEN 'Deleted' ELSE 'Loadout' END)::synchronizer.ItemType ItemType,
@@ -90,7 +90,7 @@ WITH all_files AS
   SELECT
     override_file.Loadout,
     override_file.Id,
-    {Location: override_file.TargetPath.Item2, Path: override_file.TargetPath.Item3} Path,
+    {Location: override_file.TargetPath.Item2, Path: lower(override_file.TargetPath.Item3)} Path,
     override_file.Hash,
     override_file.Size,
     (CASE WHEN override_file.IsDeleted THEN 'Deleted' ELSE 'Loadout' END)::synchronizer.ItemType ItemType,
@@ -102,7 +102,7 @@ WITH all_files AS
   SELECT
     intrinsic_file.Loadout Loadout,
     Null Id,
-    {Location: intrinsic_file.Path.Item1, Path: intrinsic_file.Path.Item2} Path,
+    {Location: intrinsic_file.Path.Item1, Path: lower(intrinsic_file.Path.Item2)} Path,
     Null Hash,
     Null Size,
     'Intrinsic'::synchronizer.ItemType ItemType,
