@@ -37,7 +37,15 @@ public abstract class ACreationEngineSynchronizer : ALoadoutSynchronizer
     
     public override bool IsIgnoredBackupPath(GamePath path)
     {
-        // Don't backup BSA files by default
-        return path.Extension == KnownCEExtensions.BSA || path.Extension == KnownCEExtensions.BA2;
+        // Don't backup BSA/BA2 archives
+        if (path.Extension == KnownCEExtensions.BSA || path.Extension == KnownCEExtensions.BA2)
+            return true;
+
+        // Only the Data folder (where mods live) needs backup.
+        // Engine binaries, executables, and other game root files are ignored.
+        if (path.LocationId == LocationId.Game && !path.InFolder(KnownPaths.Data))
+            return true;
+
+        return false;
     }
 }
