@@ -49,18 +49,24 @@ internal static class Verbs
                 cancellationToken: token
             );
         }
-        else
-        {
-            var tuples = collectionDownloader.GetMissingDownloadLinks(revisionMetadata, db: connection.Db, itemType: CollectionDownloader.ItemType.Required);
-            if (tuples.Count > 0)
-            {
-                await renderer.TextLine($"Missing {tuples.Count} downloads:");
-                await renderer.Table(["Name", "Uri"], tuples.Select(t => new object[] { t.Download.Name, t.Uri.ToString() }));
-                return 0;
-            }
-        }
 
         var items = CollectionDownloader.GetItems(revisionMetadata, CollectionDownloader.ItemType.Required);
+        if (!CollectionDownloader.IsFullyDownloaded(items, db: connection.Db))
+        {
+            var missing = collectionDownloader.GetMissingDownloadLinks(revisionMetadata, db: connection.Db, itemType: CollectionDownloader.ItemType.Required);
+            if (missing.Count > 0)
+            {
+                await renderer.TextLine($"{missing.Count} downloads require manual action:");
+                await renderer.Table(["Name", "Uri"], missing.Select(t => new object[] { t.Download.Name, t.Uri.ToString() }));
+                await renderer.TextLine("Download these files manually, then add them to the library and retry.");
+            }
+            else
+            {
+                await renderer.TextLine("Some downloads failed. Check the app logs for details.");
+            }
+            return 1;
+        }
+
         await InstallCollectionJob.Create(serviceProvider, loadout, collectionFile, revisionMetadata, items);
         return 0;
     }
