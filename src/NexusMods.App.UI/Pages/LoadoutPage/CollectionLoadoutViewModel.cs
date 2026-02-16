@@ -62,7 +62,7 @@ public class CollectionLoadoutViewModel : APageViewModel<ICollectionLoadoutViewM
             ? CollectionRevisionMetadata.Load(connection.Db, pageContext.RevisionId.Value)
             : Optional<CollectionRevisionMetadata.ReadOnly>.None;
 
-        if (revisionMetadata.HasValue)
+        if (revisionMetadata.HasValue && revisionMetadata.Value.IsValid() && revisionMetadata.Value.Contains(CollectionRevisionMetadata.Collection))
         {
             Name = revisionMetadata.Value.Collection.Name;
             RevisionNumber = revisionMetadata.Value.RevisionNumber;
