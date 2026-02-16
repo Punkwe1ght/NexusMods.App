@@ -68,18 +68,18 @@ WITH all_files AS
   SELECT
     Loadout,
     NULL Id,
-    {Location: nma_fnv1a_hash_short('Game'), Path: lower(Path)} Path,
+    {Location: nma_fnv1a_hash_short('Game'), Path: Path} Path,
     Hash,
     Size,
     'Game'::synchronizer.ItemType ItemType,
-    0 Layer 
+    0 Layer
   FROM file_hashes.loadout_files(db)
   UNION
   -- Loadout files on Layer 1
   SELECT
     loadout_item.Loadout,
     loadout_item.Id,
-    {Location: loadout_item.TargetPath.Item2, Path: lower(loadout_item.TargetPath.Item3)} Path,
+    {Location: loadout_item.TargetPath.Item2, Path: loadout_item.TargetPath.Item3} Path,
     loadout_item.Hash,
     loadout_item.Size,
     (CASE WHEN loadout_item.IsDeleted THEN 'Deleted' ELSE 'Loadout' END)::synchronizer.ItemType ItemType,
@@ -90,7 +90,7 @@ WITH all_files AS
   SELECT
     override_file.Loadout,
     override_file.Id,
-    {Location: override_file.TargetPath.Item2, Path: lower(override_file.TargetPath.Item3)} Path,
+    {Location: override_file.TargetPath.Item2, Path: override_file.TargetPath.Item3} Path,
     override_file.Hash,
     override_file.Size,
     (CASE WHEN override_file.IsDeleted THEN 'Deleted' ELSE 'Loadout' END)::synchronizer.ItemType ItemType,
@@ -102,23 +102,25 @@ WITH all_files AS
   SELECT
     intrinsic_file.Loadout Loadout,
     Null Id,
-    {Location: intrinsic_file.Path.Item1, Path: lower(intrinsic_file.Path.Item2)} Path,
+    {Location: intrinsic_file.Path.Item1, Path: intrinsic_file.Path.Item2} Path,
     Null Hash,
     Null Size,
     'Intrinsic'::synchronizer.ItemType ItemType,
     3 Layer
   FROM intrinsic_files(Db=>db) intrinsic_file
 )
--- Group by loadout, path and take the winning file
+-- Group by loadout, path (case-insensitive) and take the winning file.
+-- lower() on Path.Path aligns DuckDB's case-sensitive GROUP BY with C#'s
+-- case-insensitive RelativePath/GamePath equality. arg_max preserves original casing.
 SELECT
   arg_max(Id, Layer) Id,
   arg_max(Hash, Layer) Hash,
   arg_max(Size, Layer) Size,
   arg_max(ItemType, Layer) ItemType,
   Loadout,
-  Path
+  arg_max(Path, Layer) Path
 FROM all_files
-GROUP BY Loadout, Path;
+GROUP BY Loadout, Path.Location, lower(Path.Path);
 
 -- Highest loadout item group priority
 CREATE OR REPLACE MACRO synchronizer.MaxPriority (db) AS TABLE
